@@ -19,48 +19,30 @@ options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(executable_path=path, chrome_options=options)
 #driver = webdriver.Firefox(executable_path="C:/selenium_drivers/geckodriver-v0.20.1-win32/geckodriver.exe")
 #driver = webdriver.PhantomJS("C:/selenium_drivers/phantomjs-2.1.1-windows/bin/phantomjs.exe")
-
-driver.maximize_window()
-driver.get("https://www.ktmb.com.my")
-
-def select_options_click(option_key, option_value):
-        element = Select(driver.find_element_by_id(option_key))
-        element.select_by_value(option_value)
-
-def input_field_text(input_key, input_value):
-        element = driver.find_element_by_id(input_key)
-        element.send_keys(input_value)
-
-driver.implicitly_wait(5)
+time_period = "MO"
+the_date = "13/11/2018"
 jb_sentral = "37500"
 singapore = "37600"
-time_period = "MO"
 
-select_options_click("origin1", jb_sentral) # JB SENTRAL
-select_options_click("destination1", singapore) # SINGAPORE
-tomorrow_date = (datetime.today() + timedelta(1)).strftime("%d/%m/%Y")
-input_field_text("selectDate", tomorrow_date)
-select_options_click("oth", time_period)
+driver.maximize_window()
 
-driver.implicitly_wait(10)
-driver.find_element_by_id("btnSearch").click()
+driver.implicitly_wait(30)
+driver.get("https://eticket.ktmb.com.my/guest/ticket/select?origin=%s&destination=%s&odate=%s&oth=%s&rdate=undefined&rth=undefined&adult=1&child=0&isreturn0&pcode=undefined" % (jb_sentral, singapore, the_date, time_period))
 
-position = 1
+time_slot = "%s 07:00" % the_date
+
 if time_period == "EM":
-        selections = driver.find_elements_by_xpath("//div[@title='click to select']")
-        position = (len(selections))
+        time_slot = "%s 06:30" % the_date
 
 content_found = False
-
 while content_found == False:
         try:
                 driver.implicitly_wait(10)
-                element = driver.find_element_by_id("content")
-                element.find_element_by_id(str(position)).click()
+                element = driver.find_element_by_xpath("//div[@name='%s_%s_1']/div[@class='row']/div/div/span[@class='time ng-binding' and contains(text(), '%s')]" % (jb_sentral, singapore, time_slot))
+                element.click()
                 content_found = True
         except:
                 driver.refresh()
-
 
 driver.implicitly_wait(5)
 driver.find_element_by_xpath("//input[@value='PROCEED »']").click()
@@ -80,16 +62,6 @@ element.select_by_value(customer)
 time.sleep(1)
 driver.implicitly_wait(5)
 driver.find_element_by_xpath("//input[@value='Select Seat(s) »']").click()
-
-# error = True
-
-# while error:
-#         try:
-#                 element_test = driver.find_element_by_id( "%s_%s_%s_%s" % (jb_sentral, singapore, 1, 1) )
-#                 print("proceed to next page to select seat")
-#                 error = False
-#         except:
-#                 driver.refresh()
 
 driver.implicitly_wait(5)
 
@@ -140,7 +112,7 @@ while True:
                 current_page = 4
         for element in driver.find_elements_by_xpath("//div[@id='coach']/ul/li/a[@href='#']"):
                 if(element.text == str(current_page)):
-                        driver.implicitly_wait(15)
+                        driver.implicitly_wait(10)
                         element.click()
 
 driver.execute_script("document.querySelectorAll('label[for=\"%s\"]')[0].click()" % seat_id)
